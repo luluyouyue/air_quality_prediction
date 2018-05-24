@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-
-# For single varuable seq2seq model 
+from utils.config import KddConfig
+# For single varuable seq2seq model
 # def generate_train_dev_set(ts, dev_set_proportion):
 #     '''
 #     args:
@@ -14,7 +14,7 @@ import pandas as pd
 #     dev_length = int(dev_set_proportion * all_length)
 #     dev = ts[-dev_length:]
 #     train = ts[:-dev_length]
-    
+
 #     return train, dev
 
 # def generate_training_data_for_seq2seq(ts, batch_size=10, input_seq_len=120, output_seq_len=48):
@@ -34,14 +34,14 @@ import pandas as pd
 
 #     total_start_points = len(TS) - input_seq_len - output_seq_len
 #     start_x_idx = np.random.choice(range(total_start_points), batch_size)
-    
+
 #     input_seq = [TS[i:(i+input_seq_len)] for i in start_x_idx]
 #     output_seq = [TS[(i+input_seq_len):(i+input_seq_len+output_seq_len)] for i in start_x_idx]
 
 #     return np.array(input_seq), np.array(output_seq)
 
 # def generate_dev_data_for_seq2seq(ts, input_seq_len=120, output_seq_len=48):
-    
+
 #     TS = ts
 #     dev_set = []
 #     total_start_points = len(TS) - input_seq_len - output_seq_len
@@ -57,7 +57,7 @@ import pandas as pd
 # def generate_x_y_data(ts, past_seq_length, future_sequence_length, batch_size):
 #     """
 #     Generate single feature KDD_CUP_2018 for seq2seq. Random choose batch_size KDD_CUP_2018.
-    
+
 #     args:
 #         ts is single feature time series. ts can be training KDD_CUP_2018 or validation KDD_CUP_2018 or test KDD_CUP_2018.
 #         past_seq_length is seq_length of past KDD_CUP_2018.
@@ -70,15 +70,15 @@ import pandas as pd
 
 #     """
 #     series = ts.values
-    
+
 #     batch_x = []
 #     batch_y = []
-    
+
 #     for _ in range(batch_size):
-        
+
 #         total_series_num = len(series) - (past_seq_length + future_sequence_length)
 #         random_index = int(np.random.choice(total_series_num, 1))
-        
+
 #         x_ = series[random_index : random_index + past_seq_length]
 #         y_ = series[random_index + past_seq_length : random_index + past_seq_length + future_sequence_length]
 
@@ -88,7 +88,7 @@ import pandas as pd
 
 #     batch_x = np.array(batch_x)
 #     batch_y = np.array(batch_y)
-    
+
 #     batch_x = np.expand_dims(batch_x, axis=2)
 #     batch_y = np.expand_dims(batch_y, axis=2)
 #     # shape: (batch_size, seq_length, input/output_dim)
@@ -100,49 +100,54 @@ import pandas as pd
 #     return batch_x, batch_y
 
 
-
-
-
 # For multi variable seq2seq model
 
 # def generate_train_samples(x, y, batch_size=32, input_seq_len=30, output_seq_len=5):
 
 #     total_start_points = len(x) - input_seq_len - output_seq_len
 #     start_x_idx = np.random.choice(range(total_start_points), batch_size, replace = False)
-    
+
 #     input_batch_idxs = [list(range(i, i+input_seq_len)) for i in start_x_idx]
 #     input_seq = np.take(x, input_batch_idxs, axis = 0)
-    
+
 #     output_batch_idxs = [list(range(i+input_seq_len, i+input_seq_len+output_seq_len)) for i in start_x_idx]
 #     output_seq = np.take(y, output_batch_idxs, axis = 0)
-    
+
 #     return input_seq, output_seq # in shape: (batch_size, time_steps, feature_dim)
 
 # def generate_test_samples(x, y, input_seq_len=30, output_seq_len=5):
-    
+
 #     total_samples = x.shape[0]
-    
+
 #     input_batch_idxs = [list(range(i, i+input_seq_len)) for i in range((total_samples-input_seq_len-output_seq_len))]
 #     input_seq = np.take(x, input_batch_idxs, axis = 0)
-    
+
 #     output_batch_idxs = [list(range(i+input_seq_len, i+input_seq_len+output_seq_len)) for i in range((total_samples-input_seq_len-output_seq_len))]
 #     output_seq = np.take(y, output_batch_idxs, axis = 0)
-    
+
 #     return input_seq, output_seq
 
-test_data_dir="test/"
+processed_data_dir = KddConfig.processed_data_dir
 # test_data_dir="test_new/"
 
-def get_training_statistics(city):
+
+def get_training_statistics(city, eval=False):
     '''
     Get statics values of aq and meo KDD_CUP_2018.
     '''
-    aq_describe = pd.read_csv(test_data_dir+"%s_aq_describe.csv" %(city))
+    processed_data_dir = ''
+    if eval:
+        processed_data_dir = KddConfig.eval_processed_data_dir
+    else:
+        processed_data_dir = KddConfig.processed_data_dir
+
+    aq_describe = pd.read_csv(processed_data_dir+"%s_aq_describe.csv" % (city))
     aq_describe.set_index("Unnamed: 0", inplace=True)
-    
-    meo_describe = pd.read_csv(test_data_dir+"%s_meo_describe.csv" %(city))
-    meo_describe.set_index("Unnamed: 0", inplace=True)  
-    
+
+    meo_describe = pd.read_csv(
+        processed_data_dir+"%s_meo_describe.csv" % (city))
+    meo_describe.set_index("Unnamed: 0", inplace=True)
+
     statistics = pd.concat([aq_describe, meo_describe], axis=1)
     statistics = statistics.loc[["mean", "std"]]
     return statistics
@@ -152,7 +157,7 @@ def get_training_statistics(city):
 
 def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=None, X_meo_list=None, use_day=True, pre_days=5, batch_size=32, gap=0):
     '''
-    
+
     Args:
         station_list : a list of used stations.
         X_aq_list : a list of used aq features as input.
@@ -165,7 +170,7 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
                 0 : 当天 23点以后进行的模型训练
                 12 : 当天中午进行的模型训练
                 24 : 不使用当天数据进行的训练
-        
+
     station_list = ['dongsi_aq','tiantan_aq','guanyuan_aq','wanshouxigong_aq','aotizhongxin_aq',
                 'nongzhanguan_aq','wanliu_aq','beibuxinqu_aq','zhiwuyuan_aq','fengtaihuayuan_aq',
                 'yungang_aq','gucheng_aq','fangshan_aq','daxing_aq','yizhuang_aq','tongzhou_aq',
@@ -184,12 +189,13 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
 
     '''
 
-    aq_train = pd.read_csv(test_data_dir+"%s_aq_train_data.csv" %(city))
-    meo_train = pd.read_csv(test_data_dir+"%s_meo_train_data.csv" %(city))
+    aq_train = pd.read_csv(processed_data_dir+"%s_aq_train_data.csv" % (city))
+    meo_train = pd.read_csv(
+        processed_data_dir+"%s_meo_train_data.csv" % (city))
     # print("shape of aq and meo training KDD_CUP_2018 are : ", aq_train.shape, meo_train.shape)
-    
+
     train_df = pd.concat([aq_train, meo_train], axis=1)
-    train_df.to_csv('train_data.csv')
+    # train_df.to_csv('train_data.csv')
     # print 'aq_train.shape:', aq_train.shape, 'meo_train:', meo_train.shape   # aq_train.shape: (10873, 211) meo_train: (0, 176)
     # print 'train_df.shape:', train_df.shape                                  # train_df.shape: (10873, 387)
 
@@ -206,8 +212,6 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
     train_df.reset_index(inplace=True)
     drop_dim = train_df.shape[0]
     # print 'nan is %d' % (original-drop_dim)
-
-
 
     # print('ld X_feature:', train_df.shape)  out: (10873, 161)
     # print list(train_df)[:105]
@@ -227,8 +231,9 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
     # step 1 : keep all features about the stations
     # print 'before x_feature filter:', len(train_df.columns) out: 161
     station_filters = []
-    for station in station_list : 
-        station_filter = [index for index in train_df.columns if station in index]
+    for station in station_list:
+        station_filter = [
+            index for index in train_df.columns if station in index]
         station_filters += station_filter
     # print 'after filter , train station_filters:', station_filters, len(station_filters)
     '''
@@ -237,9 +242,9 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
     # print('step 1 successful!')
     # step 2 : filter of X features
     X_feature_filters = []
-    if X_meo_list :
+    if X_meo_list:
         X_features = X_aq_list + X_meo_list
-    else :
+    else:
         X_features = X_aq_list
 
     # print 'X_features:', X_features
@@ -254,7 +259,6 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
 
     X_feature_filters.sort()  # 排序，保证训练集和验证集中的特征的顺序一致
     # print 'train X_feature_filters:', X_feature_filters
-
 
     X_df = train_df[X_feature_filters]
     # X_df.to_csv('./X_d.csv')
@@ -284,31 +288,32 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
     # step 4 : generate training batch
     X_df_list = []
     y_df_list = []
-    
+
     max_start_points = X_df.shape[0] - (pre_days + 2) * 24 - gap
     # print('max_start_points:', max_start_points)
-    if use_day : 
+    if use_day:
         total_start_points = range(0, max_start_points, 24)
-    else :
+    else:
         total_start_points = range(0, max_start_points, 1)
     # print('ok')
     for i in range(batch_size):
         # print(i)
-        flag = True        
-        while flag :
+        flag = True
+        while flag:
             # print('excute while!')
-            X_start_index = int(np.random.choice(total_start_points, 1, replace = False))
+            X_start_index = int(np.random.choice(
+                total_start_points, 1, replace=False))
             X_end_index = X_start_index + pre_days * 24 - 1 - gap
 
-            y_start_index =  X_start_index + pre_days * 24
+            y_start_index = X_start_index + pre_days * 24
             y_end_index = y_start_index + 47
-            
+
             # print(X_start_index, X_end_index, y_start_index, y_end_index)
             # print ('delta:', X_end_index-X_start_index)
             X = X_df.loc[X_start_index: X_end_index]
             # X = X_df.loc[X_start_index: X_start_index+119]
             # print('X.shape:', X.shape)
-            y = y_df.loc[y_start_index : y_end_index]
+            y = y_df.loc[y_start_index: y_end_index]
             # X[X.isnull().values == True]
             # print pd.isnull(X)
             # 判断是不是有 NAN
@@ -316,7 +321,7 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
                 # print('exits Nall')
                 # assert False
                 pass
-            else :     
+            else:
                 X = np.array(X)
                 # print('X.shape:', X.shape)
                 y = np.array(y)
@@ -332,20 +337,19 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
     '''
     X_train_batch = np.concatenate(X_df_list, axis=0)
     y_train_batch = np.concatenate(y_df_list, axis=0)
-    
+
     return X_train_batch, y_train_batch
 
 
-def generate_X_test_set(city="bj", 
-                        station_list=None, 
-                        X_aq_list=None, 
-                        X_meo_list=None, 
-                        pre_days=5, 
-                        gap=0) :
+def generate_X_test_set(city="bj",
+                        station_list=None,
+                        X_aq_list=None,
+                        X_meo_list=None,
+                        pre_days=5,
+                        gap=0):
 
-
-    aq_dev = pd.read_csv("test_new/"+"%s_aq_norm_data.csv" %(city))
-    meo_dev = pd.read_csv("test_new/"+"%s_meo_norm_data.csv" %(city))
+    aq_dev = pd.read_csv(processed_data_dir+"%s_aq_norm_data.csv" % (city))
+    meo_dev = pd.read_csv(processed_data_dir+"%s_meo_norm_data.csv" % (city))
 
     # print('aq_dev.shape, meo_dev.shape:', aq_dev.shape, meo_dev.shape)
     dev_df = pd.concat([aq_dev, meo_dev], axis=1)
@@ -367,15 +371,16 @@ def generate_X_test_set(city="bj",
 
     # step 1 : keep all features about the stations
     station_filters = []
-    for station in station_list : 
-        station_filter = [index for index in dev_df.columns if station in index]
+    for station in station_list:
+        station_filter = [
+            index for index in dev_df.columns if station in index]
         station_filters += station_filter
-    
+
     # step 2 : filter of X features
     X_feature_filters = []
-    if X_meo_list :
+    if X_meo_list:
         X_features = X_aq_list + X_meo_list
-    else :
+    else:
         X_features = X_aq_list
 
     if city == 'ld':
@@ -385,38 +390,34 @@ def generate_X_test_set(city="bj",
             if i.split("_")[-1] in X_features:
                 X_feature_filters += [i]
 
-
     X_feature_filters.sort()  # 排序，保证训练集和验证集中的特征的顺序一致
     # print 'test X_feature_filters:', X_feature_filters
 
     X_df = dev_df[X_feature_filters]
-   
+
     # step 3 : 根据 pre_days 和　gap，确定　test　中Ｘ的值
-    delta = 0  
+    delta = 0
     X_end_index = X_df.shape[0] - 1 - delta
     # X_end_index = X_df.shape[0] - 1 - delta
 
     X_start_index = X_end_index - pre_days * 24 + gap + 1
 
-    X = X_df.loc[X_start_index : X_end_index]
+    X = X_df.loc[X_start_index: X_end_index]
     X = np.array(X)
     X = np.expand_dims(X, axis=0)
 
     return X
 
 
-
-
-
 def generate_dev_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=None, X_meo_list=None, pre_days=5, gap=0):
     '''
-   
+
     Args:
         station_list : a list of used stations.
         X_aq_list : a list of used aq features as input.
         y_aq_list : a list of used aq features as output. 
         X_meo_list : a list of used meo features.
-        
+
     station_list = ['dongsi_aq','tiantan_aq','guanyuan_aq','wanshouxigong_aq','aotizhongxin_aq',
                 'nongzhanguan_aq','wanliu_aq','beibuxinqu_aq','zhiwuyuan_aq','fengtaihuayuan_aq',
                 'yungang_aq','gucheng_aq','fangshan_aq','daxing_aq','yizhuang_aq','tongzhou_aq',
@@ -429,22 +430,26 @@ def generate_dev_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=Non
     X_meo_list = ["temperature","pressure","humidity","direction","speed/kph"]
 
     '''
-    aq_dev = pd.read_csv(test_data_dir+"%s_aq_dev_data.csv" %(city))
-    meo_dev = pd.read_csv(test_data_dir+"%s_meo_dev_data.csv" %(city))
-    
+    aq_dev = pd.read_csv(processed_data_dir+"%s_aq_dev_data.csv" % (city))
+    meo_dev = pd.read_csv(processed_data_dir + "%s_meo_dev_data.csv" % (city))
+
+    # print(aq_dev.shape)
+    # print(meo_dev.shape)
+
     dev_df = pd.concat([aq_dev, meo_dev], axis=1)
-    
+
     # step 1 : keep all features about the stations
     station_filters = []
-    for station in station_list : 
-        station_filter = [index for index in dev_df.columns if station in index]
+    for station in station_list:
+        station_filter = [
+            index for index in dev_df.columns if station in index]
         station_filters += station_filter
-    
+
     # step 2 : filter of X features
     X_feature_filters = []
-    if X_meo_list :
+    if X_meo_list:
         X_features = X_aq_list + X_meo_list
-    else :
+    else:
         X_features = X_aq_list
     if city == 'ld':
         X_feature_filters = station_filters
@@ -452,12 +457,12 @@ def generate_dev_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=Non
         for i in station_filters:
             if i.split("_")[-1] in X_features:
                 X_feature_filters += [i]
-            
+
     X_feature_filters.sort()  # 排序，保证训练集和验证集中的特征的顺序一致
     # print(len(X_feature_filters))
     X_df = dev_df[X_feature_filters]
     # print(X_df.columns)
-    
+
     # step 3 : filter of y features
     y_feature_filters = []
     y_features = y_aq_list
@@ -473,14 +478,14 @@ def generate_dev_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=Non
                 y_feature_filters += [i]
 
     y_feature_filters.sort()  # 排序，保证训练集和验证集中的特征的顺序一致
-    y_df = dev_df[y_feature_filters]   
+    y_df = dev_df[y_feature_filters]
     # print(y_df.columns)
-    
+
     # step 4 : 按天生成数据
     X_df_list = []
     y_df_list = []
-    
-    min_y_start_index = 7 * 24 # 7 是当前的最长的 pre_days
+
+    min_y_start_index = 7 * 24  # 7 是当前的最长的 pre_days
     # max_y_start_index = X_df.shape[0] - 2 * 24
     max_y_start_index = X_df.shape[0] - 2 * 24
 
@@ -491,9 +496,8 @@ def generate_dev_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=Non
 
         y_end_index = y_start_index + 47
 
-
-        X = X_df.loc[X_start_index : X_end_index]
-        y = y_df.loc[y_start_index : y_end_index]
+        X = X_df.loc[X_start_index: X_end_index]
+        y = y_df.loc[y_start_index: y_end_index]
 
         X = np.array(X)
         y = np.array(y)
@@ -503,10 +507,12 @@ def generate_dev_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=Non
 
         X_df_list.append(X)
         y_df_list.append(y)
+    # print("AAAA")
+    # print(len(X_df_list))
 
     X_dev_batch = np.concatenate(X_df_list, axis=0)
     y_dev_batch = np.concatenate(y_df_list, axis=0)
-    
+
     return X_dev_batch, y_dev_batch
 
 
@@ -532,8 +538,10 @@ def generate_eval_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=No
 
     '''
 
-    aq_dev = pd.read_csv("../test_new/" + "%s_aq_norm_data.csv" % (city))
-    meo_dev = pd.read_csv("../test_new/" + "%s_meo_norm_data.csv" % (city))
+    aq_dev = pd.read_csv(KddConfig.eval_processed_data_dir +
+                         "%s_aq_norm_data.csv" % (city))
+    meo_dev = pd.read_csv(
+        KddConfig.eval_processed_data_dir + "%s_meo_norm_data.csv" % (city))
 
     print('city:', city, aq_dev.shape)
     # print('aq_dev.shape, meo_dev.shape:', aq_dev.shape, meo_dev.shape)
@@ -560,7 +568,8 @@ def generate_eval_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=No
     # step 1 : keep all features about the stations
     station_filters = []
     for station in station_list:
-        station_filter = [index for index in dev_df.columns if station in index]
+        station_filter = [
+            index for index in dev_df.columns if station in index]
         station_filters += station_filter
 
     # step 2 : filter of X features
@@ -619,22 +628,26 @@ def generate_eval_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=No
 
     return X, Y
 
+
 if __name__ == '__main__':
     bj_station_list = ['dongsi_aq', 'tiantan_aq', 'guanyuan_aq', 'wanshouxigong_aq', 'aotizhongxin_aq',
-                    'nongzhanguan_aq', 'wanliu_aq', 'beibuxinqu_aq', 'zhiwuyuan_aq', 'fengtaihuayuan_aq',
-                    'yungang_aq', 'gucheng_aq', 'fangshan_aq', 'daxing_aq', 'yizhuang_aq', 'tongzhou_aq',
-                    'shunyi_aq', 'pingchang_aq', 'mentougou_aq', 'pinggu_aq', 'huairou_aq', 'miyun_aq',
-                    'yanqin_aq', 'dingling_aq', 'badaling_aq', 'miyunshuiku_aq', 'donggaocun_aq',
-                    'yongledian_aq', 'yufa_aq', 'liulihe_aq', 'qianmen_aq', 'yongdingmennei_aq',
-                    'xizhimenbei_aq', 'nansanhuan_aq', 'dongsihuan_aq']
+                       'nongzhanguan_aq', 'wanliu_aq', 'beibuxinqu_aq', 'zhiwuyuan_aq', 'fengtaihuayuan_aq',
+                       'yungang_aq', 'gucheng_aq', 'fangshan_aq', 'daxing_aq', 'yizhuang_aq', 'tongzhou_aq',
+                       'shunyi_aq', 'pingchang_aq', 'mentougou_aq', 'pinggu_aq', 'huairou_aq', 'miyun_aq',
+                       'yanqin_aq', 'dingling_aq', 'badaling_aq', 'miyunshuiku_aq', 'donggaocun_aq',
+                       'yongledian_aq', 'yufa_aq', 'liulihe_aq', 'qianmen_aq', 'yongdingmennei_aq',
+                       'xizhimenbei_aq', 'nansanhuan_aq', 'dongsihuan_aq']
     bj_X_aq_list = ["PM2.5", "PM10", "O3", "CO", "SO2", "NO2"]
     bj_y_aq_list = ["PM2.5", "PM10", "O3"]
-    bj_X_meo_list = ["temperature", "pressure", "humidity", "direction", "speed/kph"]
+    bj_X_meo_list = ["temperature", "pressure",
+                     "humidity", "direction", "speed/kph"]
 
-    ld_station_list = ['BL0', 'CD1', 'CD9', 'GN0', 'GN3', 'GR4', 'GR9', 'HV1', 'KF1', 'LW2', 'MY7', 'ST5', 'TH4']
+    ld_station_list = ['BL0', 'CD1', 'CD9', 'GN0', 'GN3',
+                       'GR4', 'GR9', 'HV1', 'KF1', 'LW2', 'MY7', 'ST5', 'TH4']
     ld_X_aq_list = ['NO2', 'PM10', 'PM2.5']
     ld_y_aq_list = ['PM10', 'PM2.5']
-    ld_X_meo_list = ["temperature", "pressure", "humidity", "direction", "speed"]
+    ld_X_meo_list = ["temperature", "pressure",
+                     "humidity", "direction", "speed"]
 
     #  batch_input, batch_output = generate_eval_set(city='ld',
     #                                                   station_list=ld_station_list,
@@ -646,12 +659,10 @@ if __name__ == '__main__':
     #                                                    )
     # 0.333
     batch_input, batch_output = generate_eval_set(city='bj',
-                                                      station_list=bj_station_list,
-                                                      X_aq_list=bj_X_aq_list, y_aq_list=bj_y_aq_list,
-                                                      X_meo_list=bj_X_meo_list,
-                                                      pre_days=5,
-                                                      gap=0,
+                                                  station_list=bj_station_list,
+                                                  X_aq_list=bj_X_aq_list, y_aq_list=bj_y_aq_list,
+                                                  X_meo_list=bj_X_meo_list,
+                                                  pre_days=5,
+                                                  gap=0,
                                                        start_day=0,
-                                                       )
-
-
+                                                  )

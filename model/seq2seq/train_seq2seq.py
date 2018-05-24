@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 import keras.backend.tensorflow_backend as KTF
 
-sys.path.append('../../metrics')
+# sys.path.append('../../metrics')
 
 from metrics import SMAPE_on_dataset_v1
 from seq2seq_data_util import get_training_statistics, generate_training_set, generate_dev_set, generate_X_test_set
@@ -17,7 +17,7 @@ from seq2seq_data_util import get_training_statistics, generate_training_set, ge
 from seq2seq_model import build_graph
 from generate_submission import generator_result
 
-
+from utils.config import KddConfig
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
@@ -57,25 +57,25 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
         24 : 不使用当天数据进行的训练
     loss_function : 使用不同的损失函数
     '''
-    log = open('train_log.txt', 'a+')
+    log = open(KddConfig.train_log_path, 'w')
     log.write('training city:'+city+'\t'+'loss_function:'+loss_function+'  predays:'+str(pre_days)+'\n\n')
     station_list = bj_station_list
     X_aq_list = bj_X_aq_list
     y_aq_list = bj_y_aq_list
     X_meo_list = bj_X_meo_list
-    model_path = './result_2/0430/'
+    # model_path = './result_2/0430/'
     if city=="bj":
         station_list = bj_station_list
         X_aq_list = bj_X_aq_list
         y_aq_list = bj_y_aq_list
         X_meo_list = bj_X_meo_list
-        model_path = './result_2/0430/'
+        model_path = KddConfig.bj_model_path #'./result_2/0430/'
     elif city=="ld":
         station_list = ld_station_list
         X_aq_list = ld_X_aq_list
         y_aq_list = ld_y_aq_list
         X_meo_list = ld_X_meo_list
-        model_path = './result_2/ld/'
+        model_path =  KddConfig.ld_model_path  #'./result_2/ld/'
 
     use_day=True
     learning_rate=1e-3
@@ -276,7 +276,7 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
 
 if __name__   == '__main__':
     city = 'bj'
-    iter_time = 500
+    iter_time = 10
     aver_smapes_best, model_preds_on_dev, model_preds_on_test, output_features = train_and_dev(city,total_iteractions=iter_time)
     # aver_smapes_best, model_preds_on_dev, dev_y_original, model_preds_on_test, output_features = train_and_dev(city)
     print(output_features)

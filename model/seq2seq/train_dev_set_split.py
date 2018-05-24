@@ -2,61 +2,66 @@
 import pandas as pd
 import datetime
 
-test_data_dir = 'test_new/'
-# test_data_dir = 'test/'
+from utils.config import KddConfig
 
-def train_dev_set_split(city="bj") :
-	'''
-	dev_start_time_tuple : a tuple of (year, month, day)
-	'''
-
-	meo = pd.read_csv(test_data_dir+"%s_meo_norm_data.csv" %(city))
-	aq = pd.read_csv(test_data_dir+"%s_aq_norm_data.csv" %(city))
-
-	meo.rename(index=str, columns={'Unnamed: 0':'time'}, inplace=True)
-	meo['time'] = pd.to_datetime(meo['time'])
-	aq['time'] = pd.to_datetime(aq['time'])
-
-	meo.set_index("time", inplace=True)
-	aq.set_index("time", inplace=True)
-
-	# print(aq.shape, meo.shape)
-	# print(meo.index.min(), meo.index.max())
-	# print(aq.index.min(), aq.index.max())
+processed_data_dir = KddConfig.processed_data_dir
 
 
-	# ### 1. 验证集
-	# 取4月份的数据作为验证集，当前共23天的数据
+def train_dev_set_split(city="bj", eval=False):
+    '''
+    dev_start_time_tuple : a tuple of (year, month, day)
+    '''
+    processed_data_dir = ''
+    if eval:
+        processed_data_dir = KddConfig.eval_processed_data_dir
+    else:
+        processed_data_dir = KddConfig.processed_data_dir
 
-	dev_start_time = "2018-5-11 0:00"
-	# year, month, day = dev_start_time_tuple
-	# dev_start_time = "%d-%d-%d 0:00" %(year, month, day)
-	aq_dev = aq.loc[dev_start_time:]
-	meo_dev = meo.loc[dev_start_time:]
+    meo = pd.read_csv(processed_data_dir+"%s_meo_norm_data.csv" % (city))
+    aq = pd.read_csv(processed_data_dir+"%s_aq_norm_data.csv" % (city))
 
-	# print(meo_dev.shape)
-	# print(aq_dev.shape)
+    meo.rename(index=str, columns={'Unnamed: 0': 'time'}, inplace=True)
+    meo['time'] = pd.to_datetime(meo['time'])
+    aq['time'] = pd.to_datetime(aq['time'])
 
+    meo.set_index("time", inplace=True)
+    aq.set_index("time", inplace=True)
 
-	meo_dev.to_csv(test_data_dir+"%s_meo_dev_data.csv" %(city))
-	aq_dev.to_csv(test_data_dir+"%s_aq_dev_data.csv" %(city))
+    # print(aq.shape, meo.shape)
+    # print(meo.index.min(), meo.index.max())
+    # print(aq.index.min(), aq.index.max())
 
+    # ### 1. 验证集
+    # 取4月份的数据作为验证集，当前共23天的数据
 
-	# ### 2. 训练集
-	# - 取2018年4月之前的所有数据作为训练集
-	# - 由于两个数据集的开始时间不一致，因此统一截取 `2017/1/2 00:00` 开始计算训练集
+    dev_start_time = KddConfig.dev_start_time  # "2018-5-11 0:00"
+    # year, month, day = dev_start_time_tuple
+    # dev_start_time = "%d-%d-%d 0:00" %(year, month, day)
+    aq_dev = aq.loc[dev_start_time:]
+    meo_dev = meo.loc[dev_start_time:]
 
-	train_start_time = "2017/1/2 0:00"
-	train_end_time = "2018/5/11 0:00"
+    # print(meo_dev.shape)
+    # print(aq_dev.shape)
 
-	meo_train = meo.loc[train_start_time : train_end_time]
-	aq_train = aq.loc[train_start_time : train_end_time]
+    meo_dev.to_csv(processed_data_dir+"%s_meo_dev_data.csv" % (city))
+    aq_dev.to_csv(processed_data_dir+"%s_aq_dev_data.csv" % (city))
 
-	# print(meo_train.shape)
-	# print(aq_train.shape)
+    # ### 2. 训练集
+    # - 取2018年4月之前的所有数据作为训练集
+    # - 由于两个数据集的开始时间不一致，因此统一截取 `2017/1/2 00:00` 开始计算训练集
 
-	meo_train.to_csv(test_data_dir+"%s_meo_train_data.csv" %(city))
-	aq_train.to_csv(test_data_dir+"%s_aq_train_data.csv" %(city))
+    train_start_time = KddConfig.train_start_time
+    train_end_time = KddConfig.train_end_time
+
+    meo_train = meo.loc[train_start_time: train_end_time]
+    aq_train = aq.loc[train_start_time: train_end_time]
+
+    # print(meo_train.shape)
+    # print(aq_train.shape)
+
+    meo_train.to_csv(processed_data_dir+"%s_meo_train_data.csv" % (city))
+    aq_train.to_csv(processed_data_dir+"%s_aq_train_data.csv" % (city))
+
 
 if __name__ == '__main__':
-	train_dev_set_split('ld')
+    train_dev_set_split('ld')

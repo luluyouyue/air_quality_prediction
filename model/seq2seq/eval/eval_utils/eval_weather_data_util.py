@@ -4,11 +4,15 @@ import numpy as np
 import pandas as pd
 import datetime
 # from matplotlib import pyplot as plt
+from utils.config import KddConfig
 
 # path_to_bj_meo = "./KDD_CUP_2018/Beijing/grid_meo/"
-path_to_bj_meo = "../KDD_CUP_2018/test_data/Beijing/grid_meo/"
+# "../KDD_CUP_2018/test_data/Beijing/grid_meo/"
+path_to_bj_meo = KddConfig.path_to_new_bj_meo
 # path_to_ld_meo = "./KDD_CUP_2018/London/grid_meo/"
-path_to_ld_meo = "../KDD_CUP_2018/test_data/London/grid_meo/"
+# "../KDD_CUP_2018/test_data/London/grid_meo/"
+path_to_ld_meo = KddConfig.path_to_new_ld_meo
+
 
 def load_bj_grid_meo_data(useful_stations):
     '''
@@ -16,15 +20,15 @@ def load_bj_grid_meo_data(useful_stations):
     useful_stations(nearby station) : dict of {aq_station : meo_station}
     '''
 
-    # csv_list = ["./KDD_CUP_2018/Beijing/grid_meo/Beijing_historical_meo_grid.csv", 
+    # csv_list = ["./KDD_CUP_2018/Beijing/grid_meo/Beijing_historical_meo_grid.csv",
     #             "./KDD_CUP_2018/Beijing/grid_meo/new.csv"]
 
     # path_to_bj_meo = "./KDD_CUP_2018/Beijing/grid_meo/"
-    bj_csv_list  = os.listdir(path_to_bj_meo)
+    bj_csv_list = os.listdir(path_to_bj_meo)
 
     bj_meo_datas = []
 
-    for csv in bj_csv_list :
+    for csv in bj_csv_list:
         if csv != '.DS_Store' and not csv.startswith("._"):
             path_to_file = path_to_bj_meo + csv
             # print(path_to_file)
@@ -32,24 +36,24 @@ def load_bj_grid_meo_data(useful_stations):
             # print(bj_meo_data.columns)
 
             # 去掉多余信息
-            if "longitude" in bj_meo_data.columns :
+            if "longitude" in bj_meo_data.columns:
                 bj_meo_data.drop("longitude", axis=1, inplace=True)
-            if "latitude" in bj_meo_data.columns :    
+            if "latitude" in bj_meo_data.columns:
                 bj_meo_data.drop("latitude", axis=1, inplace=True)
-            if "id" in bj_meo_data.columns :
+            if "id" in bj_meo_data.columns:
                 bj_meo_data.drop("id", axis=1, inplace=True)
             # 去掉了wether数据，是否合理？？
-            if "weather" in bj_meo_data.columns :
+            if "weather" in bj_meo_data.columns:
                 bj_meo_data.drop("weather", axis=1, inplace=True)
-            
+
             name_pairs = {}
-            if "station_id" in bj_meo_data.columns :
+            if "station_id" in bj_meo_data.columns:
                 name_pairs["station_id"] = "stationName"
-            if "time" in bj_meo_data.columns :
+            if "time" in bj_meo_data.columns:
                 name_pairs["time"] = "utc_time"
-            if "wind_speed/kph" in bj_meo_data.columns :
+            if "wind_speed/kph" in bj_meo_data.columns:
                 name_pairs["wind_speed/kph"] = "wind_speed"
-            
+
             bj_meo_data.rename(index=str, columns=name_pairs, inplace=True)
             bj_meo_datas.append(bj_meo_data)
 
@@ -58,7 +62,8 @@ def load_bj_grid_meo_data(useful_stations):
     meo_dataset.sort_index(inplace=True)
     meo_dataset.drop_duplicates(subset=None, keep='first', inplace=True)
 
-    bj_grid_meo_dataset, stations, bj_meo_stations = load_grid_meo_data(meo_dataset, useful_stations)
+    bj_grid_meo_dataset, stations, bj_meo_stations = load_grid_meo_data(
+        meo_dataset, useful_stations)
 
     return bj_grid_meo_dataset, stations, bj_meo_stations
 
@@ -72,11 +77,11 @@ def load_ld_grid_meo_data(useful_stations):
     # csv_list = ["./KDD_CUP_2018/London/grid_meo/London_historical_meo_grid.csv"]
 
     # path_to_ld_meo = "./KDD_CUP_2018/London/grid_meo/"
-    ld_csv_list  = os.listdir(path_to_ld_meo)
+    ld_csv_list = os.listdir(path_to_ld_meo)
 
     ld_meo_datas = []
 
-    for csv in ld_csv_list :
+    for csv in ld_csv_list:
         if csv != '.DS_Store' and not csv.startswith("._"):
             path_to_file = path_to_ld_meo + csv
             print(path_to_file)
@@ -84,23 +89,23 @@ def load_ld_grid_meo_data(useful_stations):
             # print(ld_meo_data.columns)
 
             # 去掉多余信息
-            if "longitude" in ld_meo_data.columns :
+            if "longitude" in ld_meo_data.columns:
                 ld_meo_data.drop("longitude", axis=1, inplace=True)
-            if "latitude" in ld_meo_data.columns :    
+            if "latitude" in ld_meo_data.columns:
                 ld_meo_data.drop("latitude", axis=1, inplace=True)
-            if "id" in ld_meo_data.columns :
+            if "id" in ld_meo_data.columns:
                 ld_meo_data.drop("id", axis=1, inplace=True)
-            if "weather" in ld_meo_data.columns :
+            if "weather" in ld_meo_data.columns:
                 ld_meo_data.drop("weather", axis=1, inplace=True)
-            
+
             name_pairs = {}
-            if "station_id" in ld_meo_data.columns :
+            if "station_id" in ld_meo_data.columns:
                 name_pairs["station_id"] = "stationName"
-            if "time" in ld_meo_data.columns :
+            if "time" in ld_meo_data.columns:
                 name_pairs["time"] = "utc_time"
-            if "wind_speed/kph" in ld_meo_data.columns :
+            if "wind_speed/kph" in ld_meo_data.columns:
                 name_pairs["wind_speed/kph"] = "wind_speed"
-             
+
             ld_meo_data.rename(index=str, columns=name_pairs, inplace=True)
             # print(ld_meo_data.columns)
             ld_meo_datas.append(ld_meo_data)
@@ -109,7 +114,8 @@ def load_ld_grid_meo_data(useful_stations):
     meo_dataset.sort_index(inplace=True)
     meo_dataset.drop_duplicates(subset=None, keep='first', inplace=True)
 
-    ld_grid_meo_dataset, stations, ld_meo_stations = load_grid_meo_data(meo_dataset, useful_stations)
+    ld_grid_meo_dataset, stations, ld_meo_stations = load_grid_meo_data(
+        meo_dataset, useful_stations)
 
     return ld_grid_meo_dataset, stations, ld_meo_stations
 
@@ -137,30 +143,32 @@ def load_grid_meo_data(meo_df, useful_stations):
     # a dict of station aq, Beijing
     meo_stations = {}
 
-    for aq_station_name, meo_station_name in useful_stations.items() :
+    for aq_station_name, meo_station_name in useful_stations.items():
 
-        if meo_station_name in stations :
+        if meo_station_name in stations:
             # print 'meo_dataset["stationName"]==meo_station_name:', meo_dataset["stationName"]==meo_station_name
-            meo_station = meo_dataset[meo_dataset["stationName"]==meo_station_name].copy()
+            meo_station = meo_dataset[meo_dataset["stationName"]
+                                      == meo_station_name].copy()
             # print 'meo_station:', meo_station
             # print 'meo_station.shape:', meo_station.shape   # (X ,6)
             # meo_station.to_csv('./debug/'+meo_station_name+'_meo.csv')
             meo_station.drop("stationName", axis=1, inplace=True)
             # print 'meo_station.shape:', meo_station.shape
-            if "None" in meo_station.columns :
-                print ('exits None in meo_station columns!')
+            if "None" in meo_station.columns:
+                print('exits None in meo_station columns!')
                 meo_station.drop("None", axis=1, inplace=True)
 
             # rename
             original_names = meo_station.columns.values.tolist()
-            names_dict = {original_name : aq_station_name+"_"+original_name for original_name in original_names}
-            meo_station_renamed = meo_station.rename(index=str, columns=names_dict)
-            
+            names_dict = {original_name: aq_station_name+"_" +
+                          original_name for original_name in original_names}
+            meo_station_renamed = meo_station.rename(
+                index=str, columns=names_dict)
+
             # print("名字", meo_station.columns) out: Index([u'temperature', u'pressure', u'humidity', u'wind_direction',
             #        u'wind_speed'],
 
-            meo_stations[aq_station_name] = meo_station_renamed        
-
+            meo_stations[aq_station_name] = meo_station_renamed
 
     return meo_dataset, stations, meo_stations
 
@@ -173,17 +181,17 @@ def get_station_locations(stations_df):
     Return : 
         A list of (station_name, (longitude, latitude))
     '''
-    
+
     locations = []
     station_names = []
-    
+
     if 'station_id' in stations_df.columns:
         station_column_name = 'station_id'
     elif 'stationName' in stations_df.columns:
         station_column_name = 'stationName'
-    else :
+    else:
         print("Can not find station name!")
-    
+
     for j in stations_df.index:
         station_name = stations_df[station_column_name][j]
         if station_name not in station_names:
@@ -193,7 +201,7 @@ def get_station_locations(stations_df):
             location = (longitude, latitude)
             # station_name = stations_df[station_column_name][j]
             locations.append((station_name, location))
-    
+
     return locations
 
 
@@ -207,12 +215,12 @@ def get_location_lists(locations):
     '''
     longitudes = []
     latitudes = []
-    
+
     for i in range(len(locations)):
         _, (longitude, latitude) = locations[i]
         longitudes.append(longitude)
         latitudes.append(latitude)
-        
+
     return longitudes, latitudes
 
 
@@ -225,16 +233,17 @@ def find_nearst_meo_station_name(aq_location, meo_locations):
     '''
     nearest_station_name = ""
     nearest_distance = 1e10
-    
+
     aq_station_longitude = aq_location[1][0]
     aq_station_latitude = aq_location[1][1]
-    
+
     for station_name, (longitude, latitude) in meo_locations:
-        dis = np.sqrt((longitude-aq_station_longitude)**2 + (latitude-aq_station_latitude)**2)
+        dis = np.sqrt((longitude-aq_station_longitude) **
+                      2 + (latitude-aq_station_latitude)**2)
         if dis < nearest_distance:
             nearest_distance = dis
             nearest_station_name = station_name
-    
+
     return nearest_station_name
 
 
@@ -249,7 +258,7 @@ def get_related_meo_dfs(aq_station_nearest_meo_station, bj_meo_all, bj_grid_meo_
         related_meo_dfs = {aq_station_name : meo_station_data_df}
     '''
     related_meo_dfs = {}
-    
+
     bj_meo_all_names = set(bj_meo_all["station_id"].values)
     grid_bj_meo_all_names = set(bj_grid_meo_all["stationName"].values)
 
@@ -258,11 +267,10 @@ def get_related_meo_dfs(aq_station_nearest_meo_station, bj_meo_all, bj_grid_meo_
             related_meo_dfs[aq_station] = bj_meo_all[bj_meo_all['station_id'] == meo_station]
         elif meo_station in grid_bj_meo_all_names:
             related_meo_dfs[aq_station] = bj_grid_meo_all[bj_grid_meo_all['stationName'] == meo_station]
-        else :
+        else:
             print("meo station name not found.")
-    
-    return related_meo_dfs
 
+    return related_meo_dfs
 
 
 # def load_bj_grid_meo_data(useful_stations):
@@ -281,7 +289,7 @@ def get_related_meo_dfs(aq_station_nearest_meo_station, bj_meo_all, bj_grid_meo_
 #     bj_grid_meo_dataset_1.drop("longitude", axis=1, inplace=True)
 #     bj_grid_meo_dataset_1.drop("latitude", axis=1, inplace=True)
 
- 
+
 #     bj_grid_meo_dataset = pd.concat([bj_grid_meo_dataset_1, bj_grid_meo_dataset_2], ignore_index=True)
 
 #     # turn date from string type to datetime type
@@ -305,10 +313,9 @@ def get_related_meo_dfs(aq_station_nearest_meo_station, bj_meo_all, bj_grid_meo_
 #             original_names = bj_meo_station.columns.values.tolist()
 #             names_dict = {original_name : aq_station+"_"+original_name for original_name in original_names}
 #             bj_meo_station_renamed = bj_meo_station.rename(index=str, columns=names_dict)
-            
 
-#             bj_meo_stations[aq_station] = bj_meo_station_renamed        
+
+#             bj_meo_stations[aq_station] = bj_meo_station_renamed
 
 
 #     return bj_grid_meo_dataset, stations, bj_meo_stations
-

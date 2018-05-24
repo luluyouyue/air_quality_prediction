@@ -1,1 +1,11 @@
 data/
+model/seq2seq/actual_predict.txt
+model/seq2seq/train_log.txt
+scode/
+model/seq2seq/__pycache__/
+model/seq2seq/trained_model/
+utils/__pycache__/*
+.vscode/
+.README.md.swp
+model/seq2seq/eval/__pycache__/
+model/seq2seq/eval/eval_utils/__pycache__/

@@ -7,13 +7,15 @@ import numpy as np
 import tensorflow as tf
 import keras.backend.tensorflow_backend as KTF
 
-sys.path.append('../../metrics')
+# sys.path.append('../../metrics')
 
 from utils.computer_offline_smapes import smape_score
 from model.seq2seq.metrics import SMAPE_on_dataset_v1
-from model.seq2seq.seq2seq_data_util import get_training_statistics, generate_eval_set, generate_training_set, generate_dev_set, generate_X_test_set
+from model.seq2seq.seq2seq_data_util import get_training_statistics, generate_eval_set
 from model.seq2seq.seq2seq_model import build_graph
 from model.seq2seq.generate_submission import generator_result
+
+from utils.config import KddConfig
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
@@ -34,10 +36,12 @@ bj_X_aq_list = ["PM2.5", "PM10", "O3", "CO", "SO2", "NO2"]
 bj_y_aq_list = ["PM2.5", "PM10", "O3"]
 bj_X_meo_list = ["temperature", "pressure", "humidity", "direction", "speed"]
 
-ld_station_list = ['BL0', 'CD1', 'CD9', 'GN0', 'GN3', 'GR4', 'GR9', 'HV1', 'KF1', 'LW2', 'MY7', 'ST5', 'TH4']
+ld_station_list = ['BL0', 'CD1', 'CD9', 'GN0', 'GN3',
+                   'GR4', 'GR9', 'HV1', 'KF1', 'LW2', 'MY7', 'ST5', 'TH4']
 ld_X_aq_list = ['NO2', 'PM10', 'PM2.5']
 ld_y_aq_list = ['PM10', 'PM2.5']
-ld_X_meo_list = ["temperature", "pressure", "humidity", "direction", "speed"]  # "wind_direction","wind_speed"
+ld_X_meo_list = ["temperature", "pressure", "humidity",
+                 "direction", "speed"]  # "wind_direction","wind_speed"
 
 
 def eval(city='ld', pre_days=5, gap=0, loss_function="L2", model_name='', start_day=0):
@@ -56,19 +60,19 @@ def eval(city='ld', pre_days=5, gap=0, loss_function="L2", model_name='', start_
     X_aq_list = bj_X_aq_list
     y_aq_list = bj_y_aq_list
     X_meo_list = bj_X_meo_list
-    model_path = '../result_2/0430/'
+    # model_path = '../result_2/0430/'
     if city == "bj":
         station_list = bj_station_list
         X_aq_list = bj_X_aq_list
         y_aq_list = bj_y_aq_list
         X_meo_list = bj_X_meo_list
-        model_path = '../result_2/0430/'
+        model_path = KddConfig.bj_model_path  # '../result_2/0430/'
     elif city == "ld":
         station_list = ld_station_list
         X_aq_list = ld_X_aq_list
         y_aq_list = ld_y_aq_list
         X_meo_list = ld_X_meo_list
-        model_path = '../result_2/ld/'
+        model_path = KddConfig.ld_model_path  # '../result_2/ld/'
 
     use_day = True
     learning_rate = 1e-3
@@ -107,8 +111,7 @@ def eval(city='ld', pre_days=5, gap=0, loss_function="L2", model_name='', start_
     output_features.sort()
 
     # 统计量值
-    statistics = get_training_statistics(city)
-
+    statistics = get_training_statistics(city, eval=True)
 
     rnn_model = build_graph(feed_previous=False,
                             input_seq_len=input_seq_len,
@@ -122,16 +125,15 @@ def eval(city='ld', pre_days=5, gap=0, loss_function="L2", model_name='', start_
                             GRADIENT_CLIPPING=GRADIENT_CLIPPING,
                             loss_function=loss_function)
 
-
     X_eval, Y_eval = generate_eval_set(city=city,
-                                    station_list=station_list,
-                                    X_aq_list=X_aq_list,
-                                    y_aq_list=ld_y_aq_list,
-                                    X_meo_list=X_meo_list,
-                                    pre_days=pre_days,
-                                    gap=gap,
-                                    start_day=start_day,
-                                    )
+                                       station_list=station_list,
+                                       X_aq_list=X_aq_list,
+                                       y_aq_list=ld_y_aq_list,
+                                       X_meo_list=X_meo_list,
+                                       pre_days=pre_days,
+                                       gap=gap,
+                                       start_day=start_day,
+                                       )
 
     aver_smapes_best = 10
     model_preds_on_dev = None
@@ -141,25 +143,28 @@ def eval(city='ld', pre_days=5, gap=0, loss_function="L2", model_name='', start_
         sess.run(init)
 
         # print("Using checkpoint: ", name)
-        saver = rnn_model['saver']().restore(sess, os.path.join(model_path, model_name))
+        saver = rnn_model['saver']().restore(
+            sess, os.path.join(model_path, model_name))
 
-        feed_dict = {rnn_model['enc_inp'][t]: X_eval[:, t, :] for t in range(input_seq_len)}  # batch prediction
+        feed_dict = {rnn_model['enc_inp'][t]: X_eval[:, t, :]
+                     for t in range(input_seq_len)}  # batch prediction
         feed_dict.update(
-                {rnn_model['target_seq'][t]: np.zeros([X_eval.shape[0], output_dim], dtype=np.float32) for t in
-                 range(output_seq_len)})
+            {rnn_model['target_seq'][t]: np.zeros([X_eval.shape[0], output_dim], dtype=np.float32) for t in
+             range(output_seq_len)})
         final_preds = sess.run(rnn_model['reshaped_outputs'], feed_dict)
 
         final_preds = [np.expand_dims(pred, 1) for pred in final_preds]
         final_preds = np.concatenate(final_preds, axis=1)
-    print("Y_eval.shape:", Y_eval.shape, "final_preds.shape:", final_preds.shape)
+    print("Y_eval.shape:", Y_eval.shape,
+          "final_preds.shape:", final_preds.shape)
     aver_smapes, smapes_of_features, forecast_original = SMAPE_on_dataset_v1(Y_eval, final_preds, output_features,
-                                                                                     statistics, 1)
+                                                                             statistics, 1)
     print(aver_smapes)
 
     return X_eval, Y_eval
 
 
-if __name__   == '__main__':
+if __name__ == '__main__':
     # city = 'bj'
     # aver_smapes_best, model_preds_on_test, output_features = train_and_dev(city,model_name="5 pre_days, 0 gap, L2 loss_function, multivariate_90_iteractions")
     # # aver_smapes_best, model_preds_on_dev, dev_y_original, model_preds_on_test, output_features = train_and_dev(city)
@@ -178,4 +183,7 @@ if __name__   == '__main__':
     # # b = np.load("filename.npy")
     # generator_result(model_preds_on_test, city)
 
-    X, Y = eval(city='ld', pre_days=5, gap=0, loss_function="L2", model_name='5 pre_days, 0 gap, L2 loss_function, multivariate_225_iteractions', start_day=0)
+    # X, Y = eval(city='ld', pre_days=5, gap=0, loss_function="L2",
+    #             model_name='5 pre_days, 0 gap, L2 loss_function, multivariate_225_iteractions', start_day=0)
+    X, Y = eval(city='ld', pre_days=5, gap=0, loss_function="L2",
+                model_name='5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions', start_day=0)

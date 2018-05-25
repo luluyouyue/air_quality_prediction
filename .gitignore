@@ -9,3 +9,4 @@ utils/__pycache__/*
 .README.md.swp
 model/seq2seq/eval/__pycache__/
 model/seq2seq/eval/eval_utils/__pycache__/
+.idea/

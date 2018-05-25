@@ -11,11 +11,11 @@ import keras.backend.tensorflow_backend as KTF
 
 # sys.path.append('../../metrics')
 
-from metrics import SMAPE_on_dataset_v1
-from seq2seq_data_util import get_training_statistics, generate_training_set, generate_dev_set, generate_X_test_set
+from metrics.metrics import SMAPE_on_dataset_v1
+from model.seq2seq.seq2seq_data_util import get_training_statistics, generate_training_set, generate_dev_set, generate_X_test_set
 # from multi_variable_seq2seq_model_parameters import build_graph
-from seq2seq_model import build_graph
-from generate_submission import generator_result
+from model.seq2seq.seq2seq_model import build_graph
+from utils.generate_submission import generator_result
 
 from utils.config import KddConfig
 
@@ -69,13 +69,13 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
         X_aq_list = bj_X_aq_list
         y_aq_list = bj_y_aq_list
         X_meo_list = bj_X_meo_list
-        model_path = KddConfig.bj_model_path #'./result_2/0430/'
+        model_path = KddConfig.bj_seq2seq_model_path #'./result_2/0430/'
     elif city=="ld":
         station_list = ld_station_list
         X_aq_list = ld_X_aq_list
         y_aq_list = ld_y_aq_list
         X_meo_list = ld_X_meo_list
-        model_path =  KddConfig.ld_model_path  #'./result_2/ld/'
+        model_path =  KddConfig.ld_seq2seq_model_path  #'./result_2/ld/'
 
     use_day=True
     learning_rate=1e-3
@@ -236,6 +236,8 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
             model_preds_on_dev = forecast_original  
             model_name = name
             print('model_name:', model_name)
+            with open(KddConfig.best_model_saved_path,'a+') as f:
+                f.write("temp most good model_name "+model_name+" aver_smapes is "+str(aver_smapes)+"\n\n")
 
     # 使用这个模型中表现最好的一次迭代的参数对　X_test 进行预测
     # log the model
@@ -243,7 +245,10 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
     # file_model.write(model_name+'\n')
     # file_model.close()
 
-    print('used model_name:', model_name)
+    print('used model_name: ', model_name)
+    with open(KddConfig.best_model_saved_path,'a+') as f:
+        f.write('used model_name: '+model_name+' \n')
+
     # model_name = '5 pre_days, 0 gap, huber_loss loss_function, multivariate_100_iteractions'
     X_predict = generate_X_test_set(city=city,
                                  station_list=station_list,
@@ -251,6 +256,7 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
                                  X_meo_list=X_meo_list,
                                  pre_days=pre_days,
                                  gap=gap)
+    # print("AAAAA")
     # print(X_predict.shape)
     # 加载最好的模型
     # init = tf.global_variables_initializer()
@@ -272,6 +278,8 @@ def train_and_dev(city='ld', pre_days=5, gap=0, loss_function="L2", total_iterac
     #return aver_smapes_best, model_preds_on_dev, dev_y_original, model_preds_on_test, output_features  # 将在这种情况下表现最好的模型 的预测结果 和 模型的位置信息返回
     print("last result")
     print(aver_smapes_best)
+    with open(KddConfig.best_model_saved_path,'a+') as f:
+        f.write('best aver_sampes: '+str(aver_smapes_best)+' \n')
     return aver_smapes_best, model_preds_on_dev, model_preds_on_test, output_features
 
 if __name__   == '__main__':
@@ -286,8 +294,7 @@ if __name__   == '__main__':
     generator_result(model_preds_on_test, city)
 
     city = 'ld'
-    _, _, model_preds_on_test, output_features = train_and_dev(city,
-                                                                                               total_iteractions=iter_time)
+    _, _, model_preds_on_test, output_features = train_and_dev(city,total_iteractions=iter_time)
     # aver_smapes_best, model_preds_on_dev, dev_y_original, model_preds_on_test, output_features = train_and_dev(city)
     print(output_features)
     print(model_preds_on_test.shape)

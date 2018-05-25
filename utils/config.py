@@ -27,12 +27,12 @@ class KddConfig(object):
     path_to_model = project_dir+"model/seq2seq/result/"
     path_to_sample_submission = project_dir + "model/seq2seq/"
 
-    dev_start_time = "2018-5-1 0:00"
-    train_start_time = "2017/1/2 0:00"
-    train_end_time = "2018/5/1 0:00"
+    dev_start_time = "2018-4-1 0:00"
+    train_start_time = "2017/1/1 0:00"
+    train_end_time = "2018/3/31 23:00"
 
-    bj_model_path = project_dir + "model/seq2seq/trained_model/bj"
-    ld_model_path = project_dir + "model/seq2seq/trained_model/ld"
+    bj_seq2seq_model_path = project_dir + "trained_model/seq2seq/bj"
+    ld_seq2seq_model_path = project_dir + "trained_model/seq2seq/ld"
     train_log_path = project_dir + "model/seq2seq/train_log.txt"
     actual_predict_log_path = project_dir + "model/seq2seq/actual_predict.txt"
 
@@ -44,4 +44,14 @@ class KddConfig(object):
         "sample_submission.csv"
     submission_file_dir = project_dir + "submission/"
 
+    submission_formal_file_path = submission_pre5day_file_path
+
     download_data_dir = project_dir + "data/Newdata"
+
+    task_log_file_path = project_dir + "log/"
+
+    python_path = "py3"
+    ####Todo change model name
+    best_model_saved_path = project_dir + "log/best_model"
+
+    train_iter_times = 10

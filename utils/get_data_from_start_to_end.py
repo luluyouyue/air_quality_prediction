@@ -21,7 +21,7 @@ print("day is :", day, "hour is : ", hour)
 
 
 start_month = 5
-start_day = 1
+start_day = day
 end_month = 5
 end_day = day + 1
 print('generate KDD_CUP_2018 from', start_month,

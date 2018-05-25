@@ -128,8 +128,6 @@ from utils.config import KddConfig
 #     return input_seq, output_seq
 
 processed_data_dir = KddConfig.processed_data_dir
-# test_data_dir="test_new/"
-
 
 def get_training_statistics(city, eval=False):
     '''
@@ -140,6 +138,8 @@ def get_training_statistics(city, eval=False):
         processed_data_dir = KddConfig.eval_processed_data_dir
     else:
         processed_data_dir = KddConfig.processed_data_dir
+    # print("A"*5)
+    # print(processed_data_dir)
 
     aq_describe = pd.read_csv(processed_data_dir+"%s_aq_describe.csv" % (city))
     aq_describe.set_index("Unnamed: 0", inplace=True)
@@ -211,7 +211,7 @@ def generate_training_set(city="bj", station_list=None, X_aq_list=None, y_aq_lis
     train_df = train_df.dropna()
     train_df.reset_index(inplace=True)
     drop_dim = train_df.shape[0]
-    # print 'nan is %d' % (original-drop_dim)
+    print('nan is %d' % (original-drop_dim))
 
     # print('ld X_feature:', train_df.shape)  out: (10873, 161)
     # print list(train_df)[:105]
@@ -358,7 +358,7 @@ def generate_X_test_set(city="bj",
     # int len(dev_df)
     # dev_df.to_csv('havealookat.csv')
     dev_df = dev_df.dropna(axis=0)
-    # dev_df.reset_index(inplace=True)
+    dev_df.reset_index(inplace=True)
     # dev_df.to_csv('havealookat2.csv')
     # print len(dev_df)
     # out:
@@ -551,6 +551,7 @@ def generate_eval_set(city="bj", station_list=None, X_aq_list=None, y_aq_list=No
     before_drop = len(dev_df)
     # dev_df.to_csv('havealookat.csv')
     dev_df = dev_df.dropna(axis=0)
+    dev_df.reset_index(inplace=True)
     after_drop = len(dev_df)
 
     print('eval empty values number:', before_drop-after_drop)

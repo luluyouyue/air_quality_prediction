@@ -1,0 +1,22 @@
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_0_iteractions aver_smapes is 1.03620550872
+
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions aver_smapes is 0.878600618999
+
+used model_name: 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions 
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_0_iteractions aver_smapes is 0.963189443111
+
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions aver_smapes is 0.84711006912
+
+used model_name: 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions 
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_0_iteractions aver_smapes is 0.974851527141
+
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions aver_smapes is 0.859412494392
+
+used model_name: 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions 
+best aver_sampes: 0.859412494392 
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_0_iteractions aver_smapes is 0.763613891502
+
+temp most good model_name 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions aver_smapes is 0.545805873134
+
+used model_name: 5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions 
+best aver_sampes: 0.545805873134 

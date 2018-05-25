@@ -10,3 +10,5 @@ utils/__pycache__/*
 model/seq2seq/eval/__pycache__/
 model/seq2seq/eval/eval_utils/__pycache__/
 .idea/
+trained_model/seq2seq/bj
+trained_model/seq2seq/ld

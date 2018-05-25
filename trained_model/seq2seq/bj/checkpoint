@@ -1,2 +1,0 @@
-model_checkpoint_path: "/home/competition/air_quality_prediction/trained_model/seq2seq/bj/5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions"
-all_model_checkpoint_paths: "/home/competition/air_quality_prediction/trained_model/seq2seq/bj/5 pre_days, 0 gap, L2 loss_function, multivariate_5_iteractions"
